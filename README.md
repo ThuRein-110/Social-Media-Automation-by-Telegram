@@ -177,10 +177,10 @@ Common local values:
 TELEGRAM_BOT_TOKEN=
 TELEGRAM_ALLOWED_USER_IDS=
 SOCIAL_PUBLISH_MODE=mock
-VOICE_SPEED_MULTIPLIER=1.5
+VOICE_SPEED_MULTIPLIER=1.75
 ```
 
-`VOICE_SPEED_MULTIPLIER` controls post-processing speed for local voice-over. The default is currently `1.5`.
+`VOICE_SPEED_MULTIPLIER` controls post-processing speed for local voice-over. The default is currently `1.75`.
 
 ## Video Pipeline
 

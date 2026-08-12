@@ -1,11 +1,16 @@
 import { CreativeBrief, MediaItem, VideoTimeline, VideoTimelineSchema, VoiceOverResult } from "../domain";
 import { createVideoConceptProfile, scoreClipForConcept } from "../creative/conceptProfile";
 
+function minimumTimelineDuration() {
+  const voiceSpeed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
+  return Number.isFinite(voiceSpeed) && voiceSpeed >= 1.7 ? 20 : 24;
+}
+
 export function createTimeline(brief: CreativeBrief, media: MediaItem[], voice: VoiceOverResult, subtitles: Array<{ start: number; end: number; text: string }>): VideoTimeline {
   const sourceVideos = media.filter((item) => item.type === "video");
   if (sourceVideos.length === 0) throw new Error("Timeline requires at least one video clip.");
   const profile = createVideoConceptProfile(brief.topic);
-  const duration = Math.min(32, Math.max(24, Number((voice.durationSeconds + 0.65).toFixed(2))));
+  const duration = Math.min(32, Math.max(minimumTimelineDuration(), Number((voice.durationSeconds + 0.65).toFixed(2))));
   const desiredSceneCount = Math.min(8, Math.max(6, Math.round(duration / 4)));
   const sceneSeeds = Array.from({ length: desiredSceneCount }, (_item, index) => {
     const slot = duration / desiredSceneCount;
@@ -14,13 +19,15 @@ export function createTimeline(brief: CreativeBrief, media: MediaItem[], voice: 
     const nearby = subtitles.find((subtitle) => subtitle.start >= start && subtitle.start < end) ?? subtitles[index % Math.max(1, subtitles.length)];
     return { start, end, text: nearby?.text ?? brief.story };
   });
+  const usedMediaIds = new Set<string>();
   const scenes = sceneSeeds
     .filter((segment) => segment.start < duration)
     .map((segment, index) => {
       const ranked = sourceVideos
         .map((item) => ({ item, score: scoreClipForConcept(item, profile, segment.text, index) }))
         .sort((a, b) => b.score.finalScore - a.score.finalScore);
-      const chosen = ranked[0];
+      const chosen = ranked.find((candidate) => !usedMediaIds.has(candidate.item.id)) ?? ranked[0];
+      usedMediaIds.add(chosen.item.id);
       const end = Math.min(duration, Math.max(segment.end, segment.start + 1.2));
       return {
         start: Number(segment.start.toFixed(2)),
@@ -28,7 +35,7 @@ export function createTimeline(brief: CreativeBrief, media: MediaItem[], voice: 
         mediaId: chosen.item.id,
         operation: index === 0 ? "crop_vertical" as const : "trim" as const,
         transition: "cut" as const,
-        reason: `Title-aware ${profile.primaryEmotion} scene. ${chosen.score.reason}`
+        reason: `Unique scene source ${index + 1}. Title-aware ${profile.primaryEmotion} scene. ${chosen.score.reason}`
       };
     });
   return VideoTimelineSchema.parse({

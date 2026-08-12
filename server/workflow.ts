@@ -199,7 +199,7 @@ export function saveUploadedMedia(file: UploadedMediaFile): MediaItem {
 function searchMedia(topic: string, media: MediaItem[]): MediaItem[] {
   const profile = createVideoConceptProfile(topic);
   const topicAllowsTrailers = /\b(game|trailer|gaming)\b/i.test(topic);
-  const candidates = media
+  const scored = media
     .filter((item) => item.type === "video" && item.status === "READY")
     .map((item, index) => {
       const haystack = [...item.aiTags, ...item.tags, ...item.topics, item.filename, item.description, item.transcript ?? ""].join(" ").toLowerCase();
@@ -209,14 +209,22 @@ function searchMedia(topic: string, media: MediaItem[]): MediaItem[] {
       const lowResolution = (item.width ?? 0) < 480 || (item.height ?? 0) < 480 || (item.duration ?? 0) < 3;
       const relevance = scoreClipForConcept(item, profile, profile.coreIdea, index);
       const rightsBoost = publicDomainFilm ? 0.2 : 0;
-      const score = relevance.finalScore + rightsBoost - (blockedVisual ? 2 : 0) - (conceptMismatch ? 1.2 : 0) - (lowResolution && !publicDomainFilm ? 0.7 : 0);
+      const repeatPenalty = Math.min(0.9, item.usedCount * 0.18);
+      const score = relevance.finalScore + rightsBoost - repeatPenalty - (blockedVisual ? 2 : 0) - (conceptMismatch ? 1.2 : 0) - (lowResolution && !publicDomainFilm ? 0.7 : 0);
       return { item, score, relevance };
     })
     .sort((a, b) => b.score - a.score)
-    .filter(({ score, relevance }) => score >= 0.45 && relevance.rightsScore > 0);
-  return candidates
+    .filter(({ relevance }) => relevance.rightsScore > 0);
+  const candidates = scored.filter(({ score }) => score >= 0.45);
+  const usable = candidates.length ? candidates : scored;
+  return usable
     .map(({ item }) => item)
-    .slice(0, 6);
+    .slice(0, 8);
+}
+
+function minimumTargetDuration() {
+  const voiceSpeed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
+  return Number.isFinite(voiceSpeed) && voiceSpeed >= 1.7 ? 20 : 24;
 }
 
 function buildCaption(brandName: string, topic: string) {
@@ -294,7 +302,7 @@ export async function runProfessionalWorkflow(topic: string, source = "telegram"
     emotion: creativeBrief.voiceOver.emotion
   });
   const subtitleText = hasVoiceOver ? script.voiceoverScript : script.textOverlays.join(". ");
-  const measuredTargetDuration = Math.min(32, Math.max(24, Number((voice.durationSeconds + 0.65).toFixed(2))));
+  const measuredTargetDuration = Math.min(32, Math.max(minimumTargetDuration(), Number((voice.durationSeconds + 0.65).toFixed(2))));
   const subtitles = writeSrtFromScript(subtitleText || creativeBrief.hook, measuredTargetDuration, subtitlePath);
   const timeline = createTimeline(creativeBrief, selected, voice, subtitles);
   const backgroundScenePlan = generateBackgroundVideos(timeline, outputRoot, topic, selected);

@@ -139,7 +139,25 @@ function renderProgrammaticBackground(ffmpeg: string, outputPath: string, durati
 }
 
 function renderReadingBackground(ffmpeg: string, outputPath: string, duration: number, index: number) {
+  const variant = index % 6;
   const pageOffset = index % 2 === 0 ? "18*sin(t*1.2)" : "12*cos(t*1.05)";
+  const bookX = 92 + (variant % 3) * 34;
+  const bookY = 278 + (variant % 2) * 54;
+  const bookW = 868 - (variant % 3) * 42;
+  const bookH = 1128 - (variant % 2) * 70;
+  const spineX = bookX + Math.round(bookW * 0.48);
+  const rightPageX = spineX + 70;
+  const propLayer = variant === 0
+    ? "drawbox=x=760:y=1180:w=150:h=96:color=0x2b2119@0.78:t=fill,drawbox=x=785:y=1205:w=96:h=46:color=0x7a4f35@0.52:t=fill"
+    : variant === 1
+      ? "drawbox=x=690:y=1170:w=190:h=310:color=0x080a0d@0.76:t=fill,drawbox=x=708:y=1200:w=154:h=248:color=0x1f2937@0.46:t=fill"
+      : variant === 2
+        ? "drawbox=x=95:y=195:w=890:h=9:color=0xfff3c4@0.16:t=fill,drawbox=x=95:y=225:w=780:h=3:color=0xfff3c4@0.12:t=fill"
+        : variant === 3
+          ? "drawbox=x=155:y=1340:w=620:h=7:color=0xd9b47a@0.30:t=fill,drawbox=x=175:y=1375:w=500:h=5:color=0xd9b47a@0.22:t=fill"
+          : variant === 4
+            ? "drawbox=x=820:y=930:w=82:h=390:color=0x3b2b1f@0.52:t=fill,drawbox=x=858:y=930:w=6:h=390:color=0xfacc15@0.42:t=fill"
+            : "drawbox=x=145:y=1470:w=780:h=26:color=0x1f1610@0.42:t=fill,drawbox=x=215:y=1510:w=650:h=8:color=0xf4ead8@0.32:t=fill";
   execFileSync(ffmpeg, [
     "-y",
     "-f",
@@ -151,14 +169,13 @@ function renderReadingBackground(ffmpeg: string, outputPath: string, duration: n
       "geq=r='18+12*sin((X+T*35)/180)':g='22+14*sin((Y+T*30)/150)':b='24+10*sin((X+Y+T*25)/210)'",
       "gblur=sigma=0.9",
       "drawbox=x=0:y=0:w=1080:h=1920:color=0x0b0f13@0.16:t=fill",
-      "drawbox=x=130:y=320:w=820:h=1160:color=0xf4ead8@0.92:t=fill",
-      "drawbox=x=520:y=320:w=28:h=1160:color=0x6f5b45@0.42:t=fill",
-      `drawbox=x='165+${pageOffset}':y=380:w=315:h=18:color=0x493827@0.38:t=fill`,
-      `drawbox=x='165+${pageOffset}':y=430:w=300:h=13:color=0x493827@0.28:t=fill`,
-      `drawbox=x='595-${pageOffset}':y=395:w=275:h=15:color=0x493827@0.32:t=fill`,
-      `drawbox=x='595-${pageOffset}':y=445:w=300:h=13:color=0x493827@0.24:t=fill`,
-      "drawbox=x=760:y=1180:w=150:h=96:color=0x2b2119@0.78:t=fill",
-      "drawbox=x=785:y=1205:w=96:h=46:color=0x7a4f35@0.52:t=fill",
+      `drawbox=x=${bookX}:y=${bookY}:w=${bookW}:h=${bookH}:color=0xf4ead8@0.92:t=fill`,
+      `drawbox=x=${spineX}:y=${bookY}:w=28:h=${bookH}:color=0x6f5b45@0.42:t=fill`,
+      `drawbox=x='${bookX + 35}+${pageOffset}':y=${bookY + 60}:w=${Math.round(bookW * 0.36)}:h=18:color=0x493827@0.38:t=fill`,
+      `drawbox=x='${bookX + 35}+${pageOffset}':y=${bookY + 110}:w=${Math.round(bookW * 0.34)}:h=13:color=0x493827@0.28:t=fill`,
+      `drawbox=x='${rightPageX}-${pageOffset}':y=${bookY + 75}:w=${Math.round(bookW * 0.31)}:h=15:color=0x493827@0.32:t=fill`,
+      `drawbox=x='${rightPageX}-${pageOffset}':y=${bookY + 125}:w=${Math.round(bookW * 0.34)}:h=13:color=0x493827@0.24:t=fill`,
+      propLayer,
       "drawbox=x=110:y=230:w=860:h=6:color=white@0.08:t=fill",
       "drawbox=x='140+80*sin(t*0.45)':y=170:w=650:h=2:color=0xfff3c4@0.18:t=fill",
       "noise=alls=4:allf=t",
@@ -202,7 +219,7 @@ export function generateBackgroundVideos(timeline: VideoTimeline, outputRoot: st
         start: shot.start,
         end: shot.end,
         backgroundType: "PROGRAMMATIC_VIDEO" as const,
-        description: `Original rights-safe animated reading scene for ${topic}`,
+        description: `Original rights-safe animated reading scene ${index + 1} for ${topic}`,
         camera: index % 3 === 0 ? "slow_push_forward" : index % 3 === 1 ? "data_flow" : "drift",
         outputPath,
         rightsVerified: true
