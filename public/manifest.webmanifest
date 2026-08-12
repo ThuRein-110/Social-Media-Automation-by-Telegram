@@ -1,0 +1,9 @@
+{
+  "name": "Autonomous Social Agent",
+  "short_name": "Social Agent",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8fb",
+  "theme_color": "#111827",
+  "icons": []
+}
