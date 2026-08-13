@@ -131,6 +131,14 @@ Run the Telegram polling worker:
 npm run telegram:poll
 ```
 
+Run the full local automation:
+
+```bash
+npm run dev:all
+```
+
+This starts the API, web app, Telegram polling, and the twice-daily Buffer autopilot.
+
 Check local readiness:
 
 ```bash
@@ -217,15 +225,25 @@ A video can be technically ready while still being blocked from being labeled pr
 - The app does not bypass platform restrictions or use browser automation for unauthorized posting.
 - Real social posting is disabled unless explicitly configured through official APIs.
 
-## Manual Publishing
+## Automatic Publishing
 
-This project currently prepares upload-ready files and captions. The creator manually uploads the final video to social platforms.
-
-Automatic publishing should only be enabled when official API credentials, permissions, and platform requirements are configured.
+Automatic publishing is handled through Buffer when `BUFFER_API_KEY`, the Buffer channel IDs, and public video hosting are configured locally.
 
 For TikTok auto-upload, save `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, and `TIKTOK_REDIRECT_URI` locally first. TikTok also requires Login Kit OAuth and approved Content Posting API scopes such as `video.publish` for direct posting or `video.upload` for upload-to-inbox flows.
 
-Run `npm run dev:all` for local automation. It keeps the web app and Telegram bot running without sending repeated scheduled upload packs.
+Run `npm run dev:all` for local automation. It keeps the web app, Telegram bot, and twice-daily Buffer autopilot running without sending repeated scheduled upload packs.
+
+The autopilot prepares one post 30 minutes before each Thailand-time publishing slot:
+
+- `09:30` prepares the `10:00 AM` post.
+- `19:30` prepares the `8:00 PM` post.
+
+Each generated video is uploaded to Vercel Blob and scheduled through Buffer for TikTok, Instagram Reels, and Facebook Reels when those Buffer channel IDs are saved. Override the default fallback topic with:
+
+```text
+AUTOPOST_TOPIC=daily vlog
+AUTOPOST_PREP_MINUTES=30
+```
 
 After TikTok OAuth is approved and `TIKTOK_ACCESS_TOKEN` is saved locally, run `npm run tiktok:upload` to upload the latest generated TikTok export through the official Content Posting API. Use `npm run tiktok:upload -- --mode draft` for TikTok inbox upload flow when the app has `video.upload` scope.
 
