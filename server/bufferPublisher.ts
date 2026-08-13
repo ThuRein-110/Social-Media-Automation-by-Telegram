@@ -3,6 +3,7 @@ import path from "node:path";
 import { put } from "@vercel/blob";
 import { addEvent } from "./localDb";
 import { loadLocalEnv } from "./secrets";
+import { Platform } from "../src/domain";
 
 type BufferCreatePostResponse = {
   createPost:
@@ -20,6 +21,7 @@ type BufferCreatePostResponse = {
 
 export interface BufferScheduleResult {
   ok: true;
+  platform: Platform;
   postId: string;
   dueAt?: string;
   videoUrl: string;
@@ -35,9 +37,43 @@ export function bufferAutomationReady() {
   loadLocalEnv();
   return Boolean(
     process.env.BUFFER_API_KEY &&
-    process.env.BUFFER_TIKTOK_CHANNEL_ID &&
+    (process.env.BUFFER_TIKTOK_CHANNEL_ID || process.env.BUFFER_INSTAGRAM_CHANNEL_ID || process.env.BUFFER_FACEBOOK_CHANNEL_ID) &&
     (process.env.BLOB_READ_WRITE_TOKEN || process.env.BUFFER_PUBLIC_VIDEO_URL || process.env.BUFFER_PUBLIC_BASE_URL)
   );
+}
+
+function channelIdForPlatform(platform: Platform) {
+  if (platform === "tiktok") return process.env.BUFFER_TIKTOK_CHANNEL_ID;
+  if (platform === "instagram") return process.env.BUFFER_INSTAGRAM_CHANNEL_ID;
+  if (platform === "facebook") return process.env.BUFFER_FACEBOOK_CHANNEL_ID;
+  return undefined;
+}
+
+function metadataForPlatform(platform: Platform) {
+  if (platform === "instagram") {
+    return {
+      instagram: {
+        type: "reel",
+        shouldShareToFeed: true,
+        isAiGenerated: true
+      }
+    };
+  }
+  if (platform === "facebook") {
+    return {
+      facebook: {
+        type: "reel"
+      }
+    };
+  }
+  if (platform === "tiktok") {
+    return {
+      tiktok: {
+        isAiGenerated: true
+      }
+    };
+  }
+  return undefined;
 }
 
 export async function uploadVideoToVercelBlob(videoPath: string) {
@@ -72,7 +108,8 @@ async function bufferGraphql<T>(query: string, variables: Record<string, unknown
   return data.data as T;
 }
 
-export async function scheduleBufferTikTokPost(options: {
+export async function scheduleBufferPost(options: {
+  platform: Platform;
   videoPath: string;
   caption: string;
   dueAt: string;
@@ -81,7 +118,8 @@ export async function scheduleBufferTikTokPost(options: {
 }): Promise<BufferScheduleResult> {
   loadLocalEnv();
   const videoUrl = options.videoUrl ?? process.env.BUFFER_PUBLIC_VIDEO_URL ?? await uploadVideoToVercelBlob(options.videoPath);
-  const channelId = options.channelId ?? requiredEnv("BUFFER_TIKTOK_CHANNEL_ID");
+  const channelId = options.channelId ?? channelIdForPlatform(options.platform);
+  if (!channelId) throw new Error(`Buffer channel ID for ${options.platform} is missing.`);
 
   const data = await bufferGraphql<BufferCreatePostResponse>(
     `mutation ScheduleVideoPost($input: CreatePostInput!) {
@@ -111,6 +149,7 @@ export async function scheduleBufferTikTokPost(options: {
         mode: "customScheduled",
         dueAt: options.dueAt,
         aiAssisted: true,
+        metadata: metadataForPlatform(options.platform),
         assets: [
           {
             video: {
@@ -125,6 +164,33 @@ export async function scheduleBufferTikTokPost(options: {
 
   const result = data.createPost;
   if (!result?.post?.id) throw new Error(result?.message ?? "Buffer did not create the scheduled post.");
-  addEvent(`Buffer scheduled TikTok post ${result.post.id} for ${result.post.dueAt}`);
-  return { ok: true, postId: result.post.id, dueAt: result.post.dueAt, videoUrl };
+  addEvent(`Buffer scheduled ${options.platform} post ${result.post.id} for ${result.post.dueAt}`);
+  return { ok: true, platform: options.platform, postId: result.post.id, dueAt: result.post.dueAt, videoUrl };
+}
+
+export async function scheduleBufferTikTokPost(options: Omit<Parameters<typeof scheduleBufferPost>[0], "platform">) {
+  return scheduleBufferPost({ ...options, platform: "tiktok" });
+}
+
+export async function scheduleBufferPlatformPosts(options: {
+  platforms: Platform[];
+  videoPath: string;
+  caption: string;
+  dueAt: string;
+}): Promise<BufferScheduleResult[]> {
+  loadLocalEnv();
+  const targetPlatforms = options.platforms.filter((platform) => ["tiktok", "instagram", "facebook"].includes(platform) && channelIdForPlatform(platform));
+  if (targetPlatforms.length === 0) return [];
+  const videoUrl = process.env.BUFFER_PUBLIC_VIDEO_URL ?? await uploadVideoToVercelBlob(options.videoPath);
+  const results: BufferScheduleResult[] = [];
+  for (const platform of targetPlatforms) {
+    results.push(await scheduleBufferPost({
+      platform,
+      videoPath: options.videoPath,
+      caption: options.caption,
+      dueAt: options.dueAt,
+      videoUrl
+    }));
+  }
+  return results;
 }

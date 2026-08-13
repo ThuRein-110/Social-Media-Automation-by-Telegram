@@ -1,7 +1,8 @@
 import path from "node:path";
 import { loadLocalEnv } from "../server/secrets";
 import { outputDir, readState } from "../server/localDb";
-import { scheduleBufferTikTokPost } from "../server/bufferPublisher";
+import { scheduleBufferPlatformPosts, scheduleBufferPost } from "../server/bufferPublisher";
+import { Platform } from "../src/domain";
 
 function argValue(name: string) {
   const index = process.argv.indexOf(name);
@@ -53,13 +54,16 @@ function dueAt() {
 
 async function main() {
   loadLocalEnv();
-  const result = await scheduleBufferTikTokPost({
+  const platformArg = argValue("--platform");
+  const base = {
     videoPath: latestVideoPath(),
     caption: captionForLatest(),
     dueAt: dueAt(),
-    videoUrl: publicUrlForLatestVideo(),
-    channelId: argValue("--channel-id")
-  });
+    videoUrl: publicUrlForLatestVideo()
+  };
+  const result = platformArg
+    ? [await scheduleBufferPost({ ...base, platform: platformArg as Platform, channelId: argValue("--channel-id") })]
+    : await scheduleBufferPlatformPosts({ ...base, platforms: ["tiktok", "instagram", "facebook"] });
   console.log(JSON.stringify(result, null, 2));
 }
 

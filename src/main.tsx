@@ -229,7 +229,7 @@ const setupGuides: Record<string, { title: string; purpose: string; simple: stri
     title: "Buffer Auto Upload",
     purpose: "Schedule TikTok posts through your connected Buffer account.",
     simple: "Use this if Buffer already has your TikTok account connected. Buffer can publish at a specific time.",
-    needs: ["Buffer API key", "TikTok channel ID from Buffer", "Vercel Blob token"],
+    needs: ["Buffer API key", "TikTok / Instagram / Facebook channel IDs", "Vercel Blob token"],
     steps: [
       "Create a Buffer API key in Buffer API settings.",
       "Paste the Buffer API key and TikTok channel ID here.",
@@ -295,6 +295,8 @@ const secretFields: Record<string, Array<{ key: string; label: string; placehold
   buffer: [
     { key: "BUFFER_API_KEY", label: "Buffer API key", placeholder: "Paste Buffer API key", secret: true, required: true },
     { key: "BUFFER_TIKTOK_CHANNEL_ID", label: "Buffer TikTok channel ID", placeholder: "Paste Buffer channel ID", required: true },
+    { key: "BUFFER_INSTAGRAM_CHANNEL_ID", label: "Buffer Instagram channel ID", placeholder: "Paste Buffer Instagram ID", required: true },
+    { key: "BUFFER_FACEBOOK_CHANNEL_ID", label: "Buffer Facebook channel ID", placeholder: "Paste Buffer Facebook ID", required: true },
     { key: "BLOB_READ_WRITE_TOKEN", label: "Vercel Blob token", placeholder: "vercel_blob_rw_...", secret: true, required: true },
     { key: "BUFFER_PUBLIC_VIDEO_URL", label: "Public video URL", placeholder: "https://your-host.com/video.mp4" },
     { key: "BUFFER_PUBLIC_BASE_URL", label: "Public base URL", placeholder: "https://your-tunnel-or-site.com" }
