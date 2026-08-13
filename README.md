@@ -225,7 +225,9 @@ Automatic publishing should only be enabled when official API credentials, permi
 
 For TikTok auto-upload, save `TIKTOK_CLIENT_KEY`, `TIKTOK_CLIENT_SECRET`, and `TIKTOK_REDIRECT_URI` locally first. TikTok also requires Login Kit OAuth and approved Content Posting API scopes such as `video.publish` for direct posting or `video.upload` for upload-to-inbox flows.
 
-Without TikTok approval, run `npm run dev:all` for local automation. It keeps the web app, Telegram bot, and scheduler running so the app can create videos and send due TikTok upload packs to Telegram at the planned time.
+Run `npm run dev:all` for local automation. It keeps the web app and Telegram bot running without sending repeated scheduled upload packs.
+
+After TikTok OAuth is approved and `TIKTOK_ACCESS_TOKEN` is saved locally, run `npm run tiktok:upload` to upload the latest generated TikTok export through the official Content Posting API. Use `npm run tiktok:upload -- --mode draft` for TikTok inbox upload flow when the app has `video.upload` scope.
 
 ## Development Notes
 
