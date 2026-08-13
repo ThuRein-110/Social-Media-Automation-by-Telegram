@@ -6,7 +6,7 @@ import { analyzeWebsite } from "../src/brand/websiteAnalyzer";
 import { parseTelegramCommand } from "../src/telegram/commands";
 import { validateVideoEditPlan } from "../src/video/validator";
 import { addEvent, AppState, outputDir, readState, updateState, uploadDir } from "./localDb";
-import { bufferAutomationReady, scheduleBufferPlatformPosts } from "./bufferPublisher";
+import { bufferAutomationReady, configuredBufferPlatforms, scheduleBufferPlatformPosts } from "./bufferPublisher";
 import { analyzeTrends } from "../src/trends/trendIntelligence";
 import { createCreativeBrief } from "../src/creative/creativeDirector";
 import { writeScript } from "../src/creative/scriptWriter";
@@ -299,7 +299,10 @@ export async function runProfessionalWorkflow(topic: string, source = "telegram"
   const selected = searchMedia(topic, state.media);
   if (selected.length === 0) throw new Error("Upload at least one video before running the agent.");
   const trend = analyzeTrends(topic, state.events.map((event) => event.message));
-  const platforms = state.autopilot.allowedPlatforms.filter((platform) => state.connections[platform] === "mock" || state.connections[platform] === "connected");
+  const bufferPlatforms = configuredBufferPlatforms();
+  const platforms = bufferPlatforms.length
+    ? bufferPlatforms
+    : state.autopilot.allowedPlatforms.filter((platform) => state.connections[platform] === "mock" || state.connections[platform] === "connected");
   const creativeBrief = createCreativeBrief(topic, state.brandProfile, trend, selected, platforms.length ? platforms : ["instagram"]);
   const premiumProfile = choosePremiumProfile(topic, creativeBrief);
   const script = writeScript(creativeBrief, state.brandProfile.brandName);

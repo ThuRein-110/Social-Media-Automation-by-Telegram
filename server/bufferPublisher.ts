@@ -49,6 +49,11 @@ function channelIdForPlatform(platform: Platform) {
   return undefined;
 }
 
+export function configuredBufferPlatforms(): Platform[] {
+  loadLocalEnv();
+  return (["tiktok", "instagram", "facebook"] as Platform[]).filter((platform) => channelIdForPlatform(platform));
+}
+
 function metadataForPlatform(platform: Platform) {
   if (platform === "instagram") {
     return {
