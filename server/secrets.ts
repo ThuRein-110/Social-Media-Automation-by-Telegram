@@ -12,6 +12,7 @@ export const secretRequirements: Record<string, string[]> = {
   facebook: [],
   youtube: [],
   tiktok: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET", "TIKTOK_REDIRECT_URI"],
+  buffer: ["BUFFER_API_KEY", "BUFFER_TIKTOK_CHANNEL_ID"],
   ai: ["OPENAI_API_KEY"],
   storage: [],
   videoWorker: [],

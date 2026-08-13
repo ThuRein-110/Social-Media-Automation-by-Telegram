@@ -229,6 +229,14 @@ Run `npm run dev:all` for local automation. It keeps the web app and Telegram bo
 
 After TikTok OAuth is approved and `TIKTOK_ACCESS_TOKEN` is saved locally, run `npm run tiktok:upload` to upload the latest generated TikTok export through the official Content Posting API. Use `npm run tiktok:upload -- --mode draft` for TikTok inbox upload flow when the app has `video.upload` scope.
 
+If TikTok is connected through Buffer, save `BUFFER_API_KEY` and `BUFFER_TIKTOK_CHANNEL_ID`, host the MP4 at a public URL, then run:
+
+```bash
+npm run buffer:schedule -- --video-url https://your-public-host/video.mp4 --minutes 10
+```
+
+Buffer requires media URLs to be publicly reachable until the post publishes, so local paths like `D:\Work\automation\outputs\...` cannot be sent directly.
+
 ## Development Notes
 
 The app is designed to keep costs low by default:

@@ -111,6 +111,7 @@ export function defaultState(): AppState {
       facebook: "not_configured",
       youtube: "not_configured",
       tiktok: "not_configured",
+      buffer: "not_configured",
       ai: "not_configured",
       storage: "not_configured",
       videoWorker: "action_required"

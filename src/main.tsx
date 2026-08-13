@@ -150,12 +150,13 @@ const serviceLabels: Record<string, string> = {
   facebook: "Facebook",
   youtube: "YouTube",
   tiktok: "TikTok",
+  buffer: "Buffer",
   ai: "AI",
   storage: "Storage",
   videoWorker: "Video Worker"
 };
 
-const connectionOrder = ["telegram", "instagram", "facebook", "youtube", "tiktok", "ai", "storage", "videoWorker"];
+const connectionOrder = ["telegram", "instagram", "facebook", "youtube", "tiktok", "buffer", "ai", "storage", "videoWorker"];
 const manualUploadServices = new Set(["instagram", "facebook", "youtube"]);
 
 const setupGuides: Record<string, { title: string; purpose: string; simple: string; needs: string[]; steps: string[]; note: string; readyText: string }> = {
@@ -224,6 +225,19 @@ const setupGuides: Record<string, { title: string; purpose: string; simple: stri
     note: "Client Key and Secret do not upload by themselves. TikTok requires a user access token from OAuth before live posting.",
     readyText: "TikTok developer keys can be checked after saving."
   },
+  buffer: {
+    title: "Buffer Auto Upload",
+    purpose: "Schedule TikTok posts through your connected Buffer account.",
+    simple: "Use this if Buffer already has your TikTok account connected. Buffer can publish at a specific time.",
+    needs: ["Buffer API key", "TikTok channel ID from Buffer", "A public MP4 URL"],
+    steps: [
+      "Create a Buffer API key in Buffer API settings.",
+      "Paste the Buffer API key and TikTok channel ID here.",
+      "Host the final MP4 at a public URL, then run the Buffer schedule script."
+    ],
+    note: "Buffer requires video files to be reachable from a public URL. A local file path on your computer will not work.",
+    readyText: "Buffer can schedule TikTok posts after the API key and channel ID are saved."
+  },
   ai: {
     title: "AI Writing + Planning",
     purpose: "Improve scripts, captions, hooks, and creative direction.",
@@ -277,6 +291,12 @@ const secretFields: Record<string, Array<{ key: string; label: string; placehold
     { key: "TIKTOK_CLIENT_KEY", label: "TikTok Client Key", placeholder: "Paste client key", required: true },
     { key: "TIKTOK_CLIENT_SECRET", label: "TikTok Client Secret", placeholder: "Paste client secret", secret: true, required: true },
     { key: "TIKTOK_REDIRECT_URI", label: "Redirect URI", placeholder: "http://127.0.0.1:8787/api/oauth/tiktok/callback", required: true }
+  ],
+  buffer: [
+    { key: "BUFFER_API_KEY", label: "Buffer API key", placeholder: "Paste Buffer API key", secret: true, required: true },
+    { key: "BUFFER_TIKTOK_CHANNEL_ID", label: "Buffer TikTok channel ID", placeholder: "Paste Buffer channel ID", required: true },
+    { key: "BUFFER_PUBLIC_VIDEO_URL", label: "Public video URL", placeholder: "https://your-host.com/video.mp4" },
+    { key: "BUFFER_PUBLIC_BASE_URL", label: "Public base URL", placeholder: "https://your-tunnel-or-site.com" }
   ]
 };
 

@@ -13,6 +13,22 @@ function missingFor(service: string) {
   return (secretRequirements[service] ?? []).filter((key) => !process.env[key]);
 }
 
+async function bufferGraphql<T>(query: string, variables?: Record<string, unknown>): Promise<T> {
+  const response = await fetch("https://api.buffer.com", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      authorization: `Bearer ${process.env.BUFFER_API_KEY}`
+    },
+    body: JSON.stringify({ query, variables })
+  });
+  const data = await response.json() as { data?: T; errors?: Array<{ message?: string }> };
+  if (!response.ok || data.errors?.length) {
+    throw new Error(data.errors?.[0]?.message ?? `Buffer API failed with HTTP ${response.status}`);
+  }
+  return data.data as T;
+}
+
 export async function testConnection(service: string): Promise<ConnectionTestResult> {
   const missing = missingFor(service);
   if (missing.length) {
@@ -69,6 +85,31 @@ export async function testConnection(service: string): Promise<ConnectionTestRes
       title: "TikTok token saved",
       message: "A TikTok user access token is saved locally. Scheduled posting can be enabled after the app has Content Posting API approval.",
       nextSteps: ["Run a small private test post first", "Keep Telegram approval enabled before any live upload"]
+    };
+  }
+
+  if (service === "buffer") {
+    const data = await bufferGraphql<{ channel: { id: string; name: string; service: string; isDisconnected: boolean; isLocked: boolean } }>(
+      `query BufferChannel($id: ChannelId!) {
+        channel(input: { id: $id }) {
+          id
+          name
+          service
+          isDisconnected
+          isLocked
+        }
+      }`,
+      { id: process.env.BUFFER_TIKTOK_CHANNEL_ID }
+    );
+    const channel = data.channel;
+    const ok = Boolean(channel && !channel.isDisconnected && !channel.isLocked);
+    return {
+      service,
+      ok,
+      title: ok ? "Buffer TikTok channel works" : "Buffer channel needs attention",
+      message: ok ? `Connected to Buffer ${channel.service} channel: ${channel.name}.` : "Buffer channel is disconnected or locked.",
+      nextSteps: ok ? ["Add a public video URL", "Run npm run buffer:schedule"] : ["Reconnect the channel in Buffer", "Check the channel ID", "Test again"],
+      details: channel
     };
   }
 
