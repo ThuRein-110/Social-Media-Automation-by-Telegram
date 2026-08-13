@@ -1,6 +1,7 @@
 import path from "node:path";
 import { loadLocalEnv } from "../server/secrets";
 import { addEvent, outputDir, readState } from "../server/localDb";
+import { uploadVideoToVercelBlob } from "./vercel-blob-upload";
 
 type BufferCreatePostResponse = {
   createPost:
@@ -33,18 +34,24 @@ function latestProduction() {
   return latest;
 }
 
-function publicUrlForLatestVideo() {
+function latestVideoPath() {
+  const latest = latestProduction();
+  const exports = latest.platformExports as Record<string, string> | undefined;
+  return exports?.tiktok ?? latest.renderPath;
+}
+
+async function publicUrlForLatestVideo() {
   const explicit = argValue("--video-url") ?? process.env.BUFFER_PUBLIC_VIDEO_URL;
   if (explicit) return explicit;
 
+  const localPath = latestVideoPath();
+  if (process.env.BLOB_READ_WRITE_TOKEN) return uploadVideoToVercelBlob(localPath);
+
   const baseUrl = process.env.BUFFER_PUBLIC_BASE_URL?.replace(/\/+$/, "");
   if (!baseUrl) {
-    throw new Error("Buffer needs a public MP4 URL. Set BUFFER_PUBLIC_VIDEO_URL or BUFFER_PUBLIC_BASE_URL.");
+    throw new Error("Buffer needs a public MP4 URL. Set BLOB_READ_WRITE_TOKEN for Vercel Blob, or set BUFFER_PUBLIC_VIDEO_URL / BUFFER_PUBLIC_BASE_URL.");
   }
 
-  const latest = latestProduction();
-  const exports = latest.platformExports as Record<string, string> | undefined;
-  const localPath = exports?.tiktok ?? latest.renderPath;
   const relative = path.relative(outputDir, localPath).split(path.sep).map(encodeURIComponent).join("/");
   if (relative.startsWith("..")) throw new Error("Latest video is not inside the outputs folder.");
   return `${baseUrl}/outputs/${relative}`;
@@ -83,7 +90,7 @@ async function bufferGraphql<T>(query: string, variables: Record<string, unknown
 async function main() {
   loadLocalEnv();
   const channelId = argValue("--channel-id") ?? requiredEnv("BUFFER_TIKTOK_CHANNEL_ID");
-  const videoUrl = publicUrlForLatestVideo();
+  const videoUrl = await publicUrlForLatestVideo();
   const text = captionForLatest();
   const publishAt = dueAt();
 

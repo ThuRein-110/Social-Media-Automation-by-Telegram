@@ -13,6 +13,7 @@
     "scheduler": "tsx scripts/scheduler.ts",
     "buffer:channels": "tsx scripts/buffer-channels.ts",
     "buffer:schedule": "tsx scripts/buffer-schedule.ts",
+    "vercel:blob-upload": "tsx scripts/vercel-blob-upload.ts",
     "tiktok:upload": "tsx scripts/tiktok-upload.ts",
     "telegram:poll": "tsx scripts/telegram-poll.ts",
     "dev:all": "npm run dev:bot",
@@ -25,6 +26,7 @@
     "preview": "npm run build && npm run server"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.0",
     "@vitejs/plugin-react": "^6.0.5",
     "concurrently": "^10.0.4",
     "cors": "^2.8.6",

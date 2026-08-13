@@ -237,6 +237,14 @@ npm run buffer:schedule -- --video-url https://your-public-host/video.mp4 --minu
 
 Buffer requires media URLs to be publicly reachable until the post publishes, so local paths like `D:\Work\automation\outputs\...` cannot be sent directly.
 
+Recommended Vercel setup: create/connect a Vercel Blob store, pull `BLOB_READ_WRITE_TOKEN` into `.env.local`, then run:
+
+```bash
+npm run buffer:schedule -- --minutes 10
+```
+
+The script uploads the latest TikTok MP4 to Vercel Blob automatically, then schedules the Buffer post with the public Blob URL.
+
 ## Development Notes
 
 The app is designed to keep costs low by default:
