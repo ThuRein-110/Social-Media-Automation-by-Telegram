@@ -11,6 +11,7 @@
     "server": "tsx server/index.ts",
     "worker": "tsx scripts/worker.ts",
     "scheduler": "tsx scripts/scheduler.ts",
+    "buffer:channels": "tsx scripts/buffer-channels.ts",
     "buffer:schedule": "tsx scripts/buffer-schedule.ts",
     "tiktok:upload": "tsx scripts/tiktok-upload.ts",
     "telegram:poll": "tsx scripts/telegram-poll.ts",
