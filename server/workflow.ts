@@ -227,6 +227,21 @@ function minimumTargetDuration() {
   return 20;
 }
 
+function nextThaiPostSlot(from = new Date()) {
+  const bangkokOffsetMs = 7 * 60 * 60 * 1000;
+  const bangkok = new Date(from.getTime() + bangkokOffsetMs);
+  const year = bangkok.getUTCFullYear();
+  const month = bangkok.getUTCMonth();
+  const day = bangkok.getUTCDate();
+  const hour = bangkok.getUTCHours();
+  const minute = bangkok.getUTCMinutes();
+  const afterOrAt10 = hour > 10 || (hour === 10 && minute >= 0);
+  const afterOrAt20 = hour > 20 || (hour === 20 && minute >= 0);
+  const slotHour = !afterOrAt10 ? 10 : !afterOrAt20 ? 20 : 10;
+  const slotDay = afterOrAt20 ? day + 1 : day;
+  return new Date(Date.UTC(year, month, slotDay, slotHour - 7, 0, 0)).toISOString();
+}
+
 function buildCaption(brandName: string, topic: string) {
   const hashtags = topic.toLowerCase().split(/\W+/).filter(Boolean).map((word) => `#${word}`);
   return `${brandName} - ${topic}\n\n${hashtags.join(" ")} #shorts`;
@@ -343,7 +358,7 @@ export async function runProfessionalWorkflow(topic: string, source = "telegram"
     platformExports
   });
   const createdAt = new Date();
-  const scheduledPublishAt = new Date(createdAt.getTime() + 60 * 60 * 1000).toISOString();
+  const scheduledPublishAt = nextThaiPostSlot(createdAt);
   const telegramApprovalDueAt = createdAt.toISOString();
   const posts = platforms.map((platform) => ({
     id: crypto.randomUUID(),

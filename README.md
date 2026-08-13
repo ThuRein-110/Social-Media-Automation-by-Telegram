@@ -245,6 +245,8 @@ npm run buffer:schedule -- --minutes 10
 
 The script uploads the latest TikTok MP4 to Vercel Blob automatically, then schedules the Buffer post with the public Blob URL.
 
+Automatic Buffer/TikTok scheduling uses Thai time slots: 10:00 AM and 8:00 PM Asia/Bangkok. A generated video is assigned to the next available slot.
+
 ## Development Notes
 
 The app is designed to keep costs low by default:
