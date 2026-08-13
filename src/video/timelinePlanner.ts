@@ -2,8 +2,7 @@ import { CreativeBrief, MediaItem, VideoTimeline, VideoTimelineSchema, VoiceOver
 import { createVideoConceptProfile, scoreClipForConcept } from "../creative/conceptProfile";
 
 function minimumTimelineDuration() {
-  const voiceSpeed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
-  return Number.isFinite(voiceSpeed) && voiceSpeed >= 1.7 ? 20 : 24;
+  return 20;
 }
 
 export function createTimeline(brief: CreativeBrief, media: MediaItem[], voice: VoiceOverResult, subtitles: Array<{ start: number; end: number; text: string }>): VideoTimeline {

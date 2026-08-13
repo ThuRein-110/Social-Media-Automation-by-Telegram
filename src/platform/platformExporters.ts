@@ -45,10 +45,7 @@ function probeVideo(videoPath: string): ProbeVideo {
 
 function validateMaster(videoPath: string, profile: PremiumVideoProfile) {
   const meta = probeVideo(videoPath);
-  const voiceSpeed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
-  const minimumDuration = Number.isFinite(voiceSpeed) && voiceSpeed >= 1.7
-    ? Math.min(profile.minDuration, 20)
-    : profile.minDuration;
+  const minimumDuration = Math.min(profile.minDuration, 20);
   const checks = [
     { name: "resolution", passed: meta.width === 1080 && meta.height === 1920, detail: `${meta.width}x${meta.height}` },
     { name: "duration", passed: meta.duration >= minimumDuration && meta.duration <= profile.maxDuration + 0.75, detail: `${meta.duration.toFixed(2)}s` },

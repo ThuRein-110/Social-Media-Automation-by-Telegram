@@ -223,8 +223,7 @@ function searchMedia(topic: string, media: MediaItem[]): MediaItem[] {
 }
 
 function minimumTargetDuration() {
-  const voiceSpeed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
-  return Number.isFinite(voiceSpeed) && voiceSpeed >= 1.7 ? 20 : 24;
+  return 20;
 }
 
 function buildCaption(brandName: string, topic: string) {

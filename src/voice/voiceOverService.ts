@@ -68,8 +68,8 @@ function measuredDuration(outputPath: string, fallback: number) {
 }
 
 function speedMultiplier() {
-  const parsed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.75");
-  return Number.isFinite(parsed) ? Math.min(2, Math.max(0.75, parsed)) : 1.75;
+  const parsed = Number(process.env.VOICE_SPEED_MULTIPLIER ?? "1.25");
+  return Number.isFinite(parsed) ? Math.min(2, Math.max(0.75, parsed)) : 1.25;
 }
 
 function atempoChain(multiplier: number) {
