@@ -98,7 +98,7 @@ async function main() {
     : {
       post_info: {
         title: caption,
-        privacy_level: process.env.TIKTOK_PRIVACY_LEVEL ?? "SELF_ONLY",
+        privacy_level: process.env.TIKTOK_PRIVACY_LEVEL ?? "PUBLIC_TO_EVERYONE",
         disable_duet: false,
         disable_stitch: false,
         disable_comment: false,

@@ -247,6 +247,8 @@ The script uploads the latest TikTok MP4 to Vercel Blob automatically, then sche
 
 Automatic Buffer scheduling posts TikTok, Instagram Reels, and Facebook Reels at Thai time slots: 10:00 AM and 8:00 PM Asia/Bangkok. A generated video is assigned to the next available slot.
 
+Posts scheduled through Buffer inherit the visibility of the connected Buffer channel/account. Use public TikTok, Instagram professional, and Facebook Page settings in Buffer. The direct TikTok API script defaults to `TIKTOK_PRIVACY_LEVEL=PUBLIC_TO_EVERYONE`.
+
 ## Development Notes
 
 The app is designed to keep costs low by default:
