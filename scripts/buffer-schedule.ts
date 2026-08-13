@@ -6,7 +6,11 @@ import { Platform } from "../src/domain";
 
 function argValue(name: string) {
   const index = process.argv.indexOf(name);
-  return index >= 0 ? process.argv[index + 1] : undefined;
+  if (index >= 0) return process.argv[index + 1];
+  const positional = process.argv.slice(2);
+  if (name === "--platform") return positional.find((item) => ["tiktok", "instagram", "facebook"].includes(item));
+  if (name === "--minutes") return positional.find((item) => /^\d+$/.test(item));
+  return undefined;
 }
 
 function latestProduction() {
