@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "concurrently -n api,web -c cyan,green \"npm run server:dev\" \"vite --host 127.0.0.1\"",
-    "dev:bot": "concurrently -n api,web,bot -c cyan,green,magenta \"npm run server:dev\" \"vite --host 127.0.0.1\" \"npm run telegram:poll\"",
+    "dev:bot": "concurrently -n api,web,bot,scheduler -c cyan,green,magenta,yellow \"npm run server:dev\" \"vite --host 127.0.0.1\" \"npm run telegram:poll\" \"npm run scheduler\"",
     "dev:web": "vite --host 127.0.0.1",
     "server:dev": "tsx watch server/index.ts",
     "server": "tsx server/index.ts",
     "worker": "tsx scripts/worker.ts",
+    "scheduler": "tsx scripts/scheduler.ts",
     "telegram:poll": "tsx scripts/telegram-poll.ts",
     "dev:all": "npm run dev:bot",
     "setup": "tsx scripts/setup.ts",
