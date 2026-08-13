@@ -21,7 +21,7 @@ export const secretRequirements: Record<string, string[]> = {
 const allowedKeys = new Set(Object.values(secretRequirements).flat());
 
 export function loadLocalEnv(): void {
-  if (fs.existsSync(envPath)) dotenv.config({ path: envPath, override: true });
+  if (fs.existsSync(envPath)) dotenv.config({ path: envPath, override: true, quiet: true });
 }
 
 function parseEnvFile(): Record<string, string> {
