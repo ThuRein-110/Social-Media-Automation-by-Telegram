@@ -14,3 +14,5 @@ outputs/
 .vite-dev.err.log
 .api-job-id
 .test-data/
+
+.vercel
