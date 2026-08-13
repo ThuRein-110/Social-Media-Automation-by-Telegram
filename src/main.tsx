@@ -526,6 +526,9 @@ function App() {
     });
   }
 
+  const setupFields = secretFields[selectedSetup] ?? [];
+  const showSetupFields = setupFields.length > 0 && (showAdvancedKeys || selectedSetup === "tiktok");
+
   function uploadMedia(file: File) {
     runAction(async () => {
       const form = new FormData();
@@ -871,17 +874,19 @@ function App() {
                 </div>
               ) : null}
 
-              {(secretFields[selectedSetup] ?? []).length ? (
+              {setupFields.length ? (
                 <>
-                  <button className="advanced-toggle" onClick={() => setShowAdvancedKeys((value) => !value)}>
-                    {showAdvancedKeys ? "Hide account fields" : "Start Final Setup"}
-                  </button>
-                  {!showAdvancedKeys ? (
+                  {selectedSetup !== "tiktok" ? (
+                    <button className="advanced-toggle" onClick={() => setShowAdvancedKeys((value) => !value)}>
+                      {showAdvancedKeys ? "Hide account fields" : "Start Final Setup"}
+                    </button>
+                  ) : null}
+                  {!showSetupFields ? (
                     <p className="safe-note">Paste the required local key here only for services we still use.</p>
                   ) : (
                     <>
                       <div className="secret-form friendly-form">
-                        {(secretFields[selectedSetup] ?? []).map((field) => (
+                        {setupFields.map((field) => (
                           <label key={field.key}>
                             <span className="field-label-row">
                               <span>{field.label}{field.required ? <strong className="required-star" aria-label="required">*</strong> : null}</span>
@@ -916,11 +921,11 @@ function App() {
                   <button className="secondary-button primary-action" onClick={() => testService(selectedSetup)} disabled={busy}>
                     Check Manual Pack
                   </button>
-                ) : (secretFields[selectedSetup] ?? []).length && showAdvancedKeys ? (
+                ) : setupFields.length && showSetupFields ? (
                   <button className="secondary-button primary-action" onClick={() => saveAndTestService(selectedSetup)} disabled={busy}>
                     Save and Test {serviceLabels[selectedSetup]}
                   </button>
-                ) : (secretFields[selectedSetup] ?? []).length ? (
+                ) : setupFields.length ? (
                   <button className="secondary-button primary-action" onClick={() => setShowAdvancedKeys(true)} disabled={busy}>
                     Start Final Setup
                   </button>
