@@ -6,6 +6,7 @@ import { analyzeWebsite } from "../src/brand/websiteAnalyzer";
 import { parseTelegramCommand } from "../src/telegram/commands";
 import { validateVideoEditPlan } from "../src/video/validator";
 import { addEvent, AppState, outputDir, readState, updateState, uploadDir } from "./localDb";
+import { bufferAutomationReady, scheduleBufferTikTokPost } from "./bufferPublisher";
 import { analyzeTrends } from "../src/trends/trendIntelligence";
 import { createCreativeBrief } from "../src/creative/creativeDirector";
 import { writeScript } from "../src/creative/scriptWriter";
@@ -350,12 +351,35 @@ export async function runProfessionalWorkflow(topic: string, source = "telegram"
     topic,
     caption,
     mediaId: selected[0].id,
-    status: "scheduled" as const,
+    status: "scheduled" as "scheduled" | "published" | "blocked",
     idempotencyKey: `mock:${platform}:${topic}:${new Date().toISOString().slice(0, 10)}`,
     scheduledPublishAt,
     telegramApprovalDueAt,
     createdAt: createdAt.toISOString()
   }));
+  let bufferTikTokPost: { postId: string; dueAt?: string; videoUrl: string } | null = null;
+  if (bufferAutomationReady()) {
+    try {
+      const scheduled = await scheduleBufferTikTokPost({
+        videoPath: platformExports.tiktok,
+        caption,
+        dueAt: scheduledPublishAt
+      });
+      bufferTikTokPost = {
+        postId: scheduled.postId,
+        dueAt: scheduled.dueAt,
+        videoUrl: scheduled.videoUrl
+      };
+      for (const post of posts) {
+        if (post.platform === "tiktok") {
+          post.status = "published";
+          post.idempotencyKey = `buffer:${scheduled.postId}`;
+        }
+      }
+    } catch (error) {
+      addEvent(`Buffer auto-schedule failed: ${error instanceof Error ? error.message : "Unknown Buffer error"}`, "warning");
+    }
+  }
   updateState((next) => {
     next.topics.today = { topic, source };
     next.jobs.unshift(createJob("local", "WEBSITE_UPDATE_CHECK", trend, `trend:${topic}`));
@@ -403,9 +427,10 @@ export async function runProfessionalWorkflow(topic: string, source = "telegram"
   addEvent(`Professional MP4 rendered: ${rendered.outputPath}`);
   addEvent(`Thumbnail generated: ${thumbnail.path}`);
   addEvent(`Quality validation ${validation.passed ? "passed" : "failed"}`);
+  if (bufferTikTokPost) addEvent(`TikTok scheduled in Buffer: ${bufferTikTokPost.postId}`);
   addEvent(`Premium V3 review ${premiumQualityScore.passed ? "passed" : "needs revision"}${premiumQualityScore.revisionPlan.length ? `: ${premiumQualityScore.revisionPlan[0]}` : ""}`, premiumQualityScore.passed ? "info" : "warning");
   addEvent(`Frame review extracted ${frameReview.frames.length} inspection frames`);
-  return { topic, trend, creativeBrief, premiumProfile, visualDirection, script, voice, subtitles, timeline, backgroundScenePlan, rendered, platformExports, thumbnail, validation, qualityScore, premiumQualityScore, qualityReport, frameReview, posts };
+  return { topic, trend, creativeBrief, premiumProfile, visualDirection, script, voice, subtitles, timeline, backgroundScenePlan, rendered, platformExports, thumbnail, validation, qualityScore, premiumQualityScore, qualityReport, frameReview, posts, bufferTikTokPost };
 }
 
 function latestQualityMessage() {
