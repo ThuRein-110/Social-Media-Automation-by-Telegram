@@ -11,14 +11,21 @@ export const secretRequirements: Record<string, string[]> = {
   instagram: [],
   facebook: [],
   youtube: [],
-  tiktok: [],
+  tiktok: ["TIKTOK_CLIENT_KEY", "TIKTOK_CLIENT_SECRET", "TIKTOK_REDIRECT_URI"],
   ai: ["OPENAI_API_KEY"],
   storage: [],
   videoWorker: [],
   website: []
 };
 
-const allowedKeys = new Set(Object.values(secretRequirements).flat());
+const optionalSecretKeys: Record<string, string[]> = {
+  tiktok: ["TIKTOK_ACCESS_TOKEN", "TIKTOK_REFRESH_TOKEN"]
+};
+
+const allowedKeys = new Set([
+  ...Object.values(secretRequirements).flat(),
+  ...Object.values(optionalSecretKeys).flat()
+]);
 
 export function loadLocalEnv(): void {
   if (fs.existsSync(envPath)) dotenv.config({ path: envPath, override: true, quiet: true });
@@ -60,7 +67,9 @@ export function getSecretStatus(service?: string): Record<string, Record<string,
   const status: Record<string, Record<string, boolean>> = {};
   for (const name of services) {
     status[name] = {};
-    for (const key of secretRequirements[name] ?? []) status[name][key] = Boolean(process.env[key]);
+    for (const key of [...(secretRequirements[name] ?? []), ...(optionalSecretKeys[name] ?? [])]) {
+      status[name][key] = Boolean(process.env[key]);
+    }
   }
   return status;
 }

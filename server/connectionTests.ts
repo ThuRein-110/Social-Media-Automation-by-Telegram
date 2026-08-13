@@ -49,7 +49,30 @@ export async function testConnection(service: string): Promise<ConnectionTestRes
     };
   }
 
-  if (["instagram", "facebook", "youtube", "tiktok"].includes(service)) return {
+  if (service === "tiktok") {
+    if (!process.env.TIKTOK_ACCESS_TOKEN) {
+      return {
+        service,
+        ok: true,
+        title: "TikTok developer keys saved",
+        message: "Client Key, Client Secret, and Redirect URI are saved locally. Real auto-upload still needs TikTok Login/OAuth and approved Content Posting API scope.",
+        nextSteps: [
+          "Add the Redirect URI in TikTok Login Kit settings",
+          "Get approval for Content Posting API with video.publish or video.upload scope",
+          "Connect the TikTok account with OAuth to save a user access token"
+        ]
+      };
+    }
+    return {
+      service,
+      ok: true,
+      title: "TikTok token saved",
+      message: "A TikTok user access token is saved locally. Scheduled posting can be enabled after the app has Content Posting API approval.",
+      nextSteps: ["Run a small private test post first", "Keep Telegram approval enabled before any live upload"]
+    };
+  }
+
+  if (["instagram", "facebook", "youtube"].includes(service)) return {
     service,
     ok: true,
     title: "Manual upload pack ready",

@@ -156,7 +156,7 @@ const serviceLabels: Record<string, string> = {
 };
 
 const connectionOrder = ["telegram", "instagram", "facebook", "youtube", "tiktok", "ai", "storage", "videoWorker"];
-const manualUploadServices = new Set(["instagram", "facebook", "youtube", "tiktok"]);
+const manualUploadServices = new Set(["instagram", "facebook", "youtube"]);
 
 const setupGuides: Record<string, { title: string; purpose: string; simple: string; needs: string[]; steps: string[]; note: string; readyText: string }> = {
   telegram: {
@@ -213,16 +213,16 @@ const setupGuides: Record<string, { title: string; purpose: string; simple: stri
   },
   tiktok: {
     title: "TikTok",
-    purpose: "Prepare TikTok videos, captions, and hashtags for manual upload.",
-    simple: "The agent creates the vertical MP4 and caption. You upload it manually.",
-    needs: ["Manual upload pack"],
+    purpose: "Prepare TikTok videos now, then connect official auto-upload when TikTok approves the app.",
+    simple: "The app can save your TikTok developer keys. Real auto-upload also needs TikTok Login/OAuth and Content Posting API approval.",
+    needs: ["TikTok Client Key", "TikTok Client Secret", "Redirect URI", "TikTok Content Posting API approval"],
     steps: [
-      "Use Manual Upload Pack now.",
-      "The agent creates the MP4 and caption.",
-      "Upload the MP4 manually to TikTok."
+      "Copy the Redirect URI below into TikTok Login Kit settings.",
+      "Paste Client Key and Client Secret from TikTok Developer.",
+      "After TikTok approves video.publish or video.upload, connect OAuth and test with a private post."
     ],
-    note: "No TikTok developer setup is needed for manual upload.",
-    readyText: "TikTok is ready for manual upload packs."
+    note: "Client Key and Secret do not upload by themselves. TikTok requires a user access token from OAuth before live posting.",
+    readyText: "TikTok developer keys can be checked after saving."
   },
   ai: {
     title: "AI Writing + Planning",
@@ -272,6 +272,11 @@ const secretFields: Record<string, Array<{ key: string; label: string; placehold
   ],
   ai: [
     { key: "OPENAI_API_KEY", label: "OpenAI API key", placeholder: "sk-...", secret: true, required: true }
+  ],
+  tiktok: [
+    { key: "TIKTOK_CLIENT_KEY", label: "TikTok Client Key", placeholder: "Paste client key", required: true },
+    { key: "TIKTOK_CLIENT_SECRET", label: "TikTok Client Secret", placeholder: "Paste client secret", secret: true, required: true },
+    { key: "TIKTOK_REDIRECT_URI", label: "Redirect URI", placeholder: "http://127.0.0.1:8787/api/oauth/tiktok/callback", required: true }
   ]
 };
 
