@@ -39,13 +39,19 @@ function slotKey(slotHour: number, date = new Date()) {
   return `${parts.year}-${pad(parts.month)}-${pad(parts.day)}T${pad(slotHour)}:00+07`;
 }
 
-function activePrepSlot(date = new Date()) {
+function nextSlot(date = new Date()) {
   const parts = thaiParts(date);
-  return slots.find((slotHour) => {
-    const minutesNow = parts.hour * 60 + parts.minute;
-    const slotMinutes = slotHour * 60;
-    return minutesNow >= slotMinutes - prepMinutes && minutesNow < slotMinutes;
-  });
+  const minutesNow = parts.hour * 60 + parts.minute;
+  const upcoming = slots.find((slotHour) => minutesNow < slotHour * 60);
+  if (upcoming) return { hour: upcoming, date };
+  return { hour: slots[0], date: new Date(date.getTime() + 24 * 60 * 60 * 1000) };
+}
+
+function shouldPrepareNow(date = new Date()) {
+  const parts = thaiParts(date);
+  const minutesNow = parts.hour * 60 + parts.minute;
+  const firstPrepMinute = slots[0] * 60 - prepMinutes;
+  return minutesNow >= firstPrepMinute || minutesNow < slots[0] * 60;
 }
 
 function readRuns(): RunRecord[] {
@@ -65,10 +71,10 @@ function topicForRun() {
 }
 
 async function maybeRunSlot() {
-  const slotHour = activePrepSlot();
-  if (!slotHour) return;
+  if (!shouldPrepareNow()) return;
 
-  const key = slotKey(slotHour);
+  const slot = nextSlot();
+  const key = slotKey(slot.hour, slot.date);
   const runs = readRuns();
   if (runs.some((run) => run.key === key && run.status !== "failed")) return;
 
@@ -104,6 +110,6 @@ updateState((state) => {
   state.autopilot.enabled = true;
 });
 
-console.log(`Twice-daily autopilot started. Preparing posts ${prepMinutes} minutes before 10:00 and 20:00 Asia/Bangkok.`);
+console.log(`Twice-daily autopilot started. It keeps the next 10:00 or 20:00 Asia/Bangkok Buffer slot prepared.`);
 await maybeRunSlot();
 setInterval(() => void maybeRunSlot(), checkIntervalMs);
